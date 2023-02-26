@@ -1,3 +1,4 @@
+import 'package:autocomplete/src/shared/utils/colors.dart';
 import 'package:flutter/material.dart';
 
 class AppText extends StatelessWidget {
@@ -12,7 +13,7 @@ class AppText extends StatelessWidget {
     return Text(
       text,
       style: const TextStyle(
-        color: Colors.lightGreenAccent,
+        color: appPrimaryColor,
       ),
     );
   }

@@ -1,6 +1,7 @@
 import 'package:autocomplete/src/packages/local_storage_persistence.dart';
 import 'package:autocomplete/src/packages/packages_detail_screen.dart';
 import 'package:autocomplete/src/packages/packages_screen.dart';
+import 'package:autocomplete/src/shared/utils/colors.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -72,7 +73,7 @@ class _AppView extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       theme: ThemeData(
-        scaffoldBackgroundColor: Colors.black,
+        scaffoldBackgroundColor: appBackgroundColor,
       ),
       title: 'Autocomplete',
       routeInformationProvider: _router.routeInformationProvider,

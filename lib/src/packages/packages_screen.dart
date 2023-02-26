@@ -1,4 +1,7 @@
 import 'package:autocomplete/src/packages/local_storage_persistence.dart';
+import 'package:autocomplete/src/shared/utils/colors.dart';
+import 'package:autocomplete/src/shared/utils/decoration.dart';
+import 'package:autocomplete/src/shared/widgets/app_box.dart';
 import 'package:autocomplete/src/shared/widgets/app_divider.dart';
 import 'package:autocomplete/src/shared/widgets/app_text.dart';
 import 'package:event_bus/event_bus.dart';
@@ -67,18 +70,13 @@ class _PackageSearchView extends HookWidget {
     final pubClient = context.read<PubClient>();
     final localStoragePersistence = context.read<LocalStoragePersistence>();
     final router = GoRouter.of(context);
+
     return AnimatedBuilder(
       animation: autocompleteState,
       builder: (context, _) => AnimatedContainer(
         width: myValue,
         duration: const Duration(seconds: 1),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(100),
-          border: Border.all(
-            color: Colors.lightGreenAccent,
-            width: 2.0,
-          ),
-        ),
+        decoration: appBoxDecoration,
         child: autocompleteState.value
             ? Autocomplete<PackageResult>(
                 fieldViewBuilder: (
@@ -90,12 +88,12 @@ class _PackageSearchView extends HookWidget {
                     Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8.0),
                   child: TextField(
-                    cursorColor: Colors.lightGreenAccent,
+                    cursorColor: appPrimaryColor,
                     controller: textEditingController,
                     focusNode: focusNode..requestFocus(),
                     decoration: const InputDecoration(border: InputBorder.none),
                     style: const TextStyle(
-                      color: Colors.lightGreenAccent,
+                      color: appPrimaryColor,
                     ),
                   ),
                 ),
@@ -139,11 +137,8 @@ class _PackageSearchView extends HookWidget {
                               onSelected(option);
                             },
                             child: ListTile(
-                              title: Text(
-                                option.package,
-                                style: const TextStyle(
-                                  color: Colors.lightGreenAccent,
-                                ),
+                              title: AppText(
+                                text: option.package,
                               ),
                             ),
                           );
@@ -161,7 +156,7 @@ class _PackageSearchView extends HookWidget {
                 },
                 icon: const Icon(
                   Icons.search,
-                  color: Colors.lightGreenAccent,
+                  color: appPrimaryColor,
                 ),
               ),
       ),
@@ -198,18 +193,12 @@ class _HistoryViewState extends State<_HistoryView> {
             final history = snapshot.data!;
 
             if (history.isEmpty) {
-              return const AppText(text: 'No Recent Searches');
+              return const AppBox(child: AppText(text: 'No Recent Searches'));
             }
 
             return Container(
               width: MediaQuery.of(context).size.width * .75,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: Colors.lightGreenAccent,
-                  width: 2.0,
-                ),
-              ),
+              decoration: appSecondaryBoxDecoration,
               child: Column(
                 children: [
                   const Padding(

@@ -1,3 +1,4 @@
+import 'package:autocomplete/src/shared/utils/colors.dart';
 import 'package:flutter/material.dart';
 
 class AppDivider extends StatelessWidget {
@@ -7,7 +8,7 @@ class AppDivider extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Divider(
       height: 10,
-      color: Colors.lightGreenAccent,
+      color: appPrimaryColor,
       thickness: 2,
     );
   }
