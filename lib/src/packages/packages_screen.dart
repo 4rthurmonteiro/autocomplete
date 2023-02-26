@@ -125,25 +125,55 @@ class _PackageSearchView extends HookWidget {
                 optionsViewBuilder: (context, onSelected, options) {
                   return Padding(
                     padding: const EdgeInsets.only(top: 10.0),
-                    child: Material(
-                      child: ListView.builder(
-                        padding: const EdgeInsets.all(10.0),
-                        itemCount: options.length,
-                        itemBuilder: (BuildContext context, int index) {
-                          final option = options.elementAt(index);
+                    child: Align(
+                      alignment: Alignment.topLeft,
+                      child: Material(
+                          color: appBackgroundColor,
+                          child: Container(
+                            width: MediaQuery.of(context).size.width * .75,
+                            // padding: const EdgeInsets.only(top: 10.0),
+                            decoration: appSecondaryBoxDecoration,
+                            child: ListView.separated(
+                              shrinkWrap: true,
+                              itemBuilder: (context, index) {
+                                final option = options.elementAt(index);
 
-                          return GestureDetector(
-                            onTap: () {
-                              onSelected(option);
-                            },
-                            child: ListTile(
-                              title: AppText(
-                                text: option.package,
-                              ),
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 32.0, vertical: 5),
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      onSelected(option);
+                                    },
+                                    child: AppText(
+                                      text: option.package,
+                                    ),
+                                  ),
+                                );
+                              },
+                              separatorBuilder: (_, __) => const AppDivider(),
+                              itemCount: options.length,
                             ),
-                          );
-                        },
-                      ),
+                          )
+                          // child: ListView.builder(
+                          //   padding: const EdgeInsets.all(10.0),
+                          //   itemCount: options.length,
+                          //   itemBuilder: (BuildContext context, int index) {
+                          //     final option = options.elementAt(index);
+
+                          //     return GestureDetector(
+                          //       onTap: () {
+                          //         onSelected(option);
+                          //       },
+                          //       child: ListTile(
+                          //         title: AppText(
+                          //           text: option.package,
+                          //         ),
+                          //       ),
+                          //     );
+                          //   },
+                          // ),
+                          ),
                     ),
                   );
                 },
