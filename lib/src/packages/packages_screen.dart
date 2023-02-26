@@ -42,6 +42,7 @@ class _PackageSearchView extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final autocompleteState = useValueNotifier(false);
+    final focus = useFocusNode();
     final pubClient = context.read<PubClient>();
     final localStoragePersistence = context.read<LocalStoragePersistence>();
     final router = GoRouter.of(context);
@@ -51,6 +52,16 @@ class _PackageSearchView extends HookWidget {
           ? Column(
               children: [
                 Autocomplete<PackageResult>(
+                  fieldViewBuilder: (
+                    context,
+                    textEditingController,
+                    _,
+                    onFieldSubmitted,
+                  ) =>
+                      TextField(
+                    controller: textEditingController,
+                    focusNode: focus,
+                  ),
                   optionsBuilder: (value) async {
                     if (value.text.length > 1) {
                       final result = await pubClient.search(
@@ -105,7 +116,10 @@ class _PackageSearchView extends HookWidget {
               ],
             )
           : IconButton(
-              onPressed: () => autocompleteState.value = true,
+              onPressed: () {
+                focus.requestFocus();
+                autocompleteState.value = true;
+              },
               icon: const Icon(
                 Icons.search,
               ),
