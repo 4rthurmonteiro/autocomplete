@@ -1,4 +1,6 @@
 import 'package:autocomplete/src/packages/local_storage_persistence.dart';
+import 'package:autocomplete/src/shared/widgets/app_divider.dart';
+import 'package:autocomplete/src/shared/widgets/app_text.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -19,111 +21,150 @@ class PackagesScreen extends StatelessWidget {
   }
 }
 
-class _Content extends StatelessWidget {
+class _Content extends HookWidget {
   const _Content();
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: const [
-        _PackageSearchView(),
-        SizedBox(
-          height: 10,
+    final autocompleteState = useValueNotifier(false);
+
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Align(
+        alignment: Alignment.center,
+        child: Column(
+          children: [
+            _PackageSearchView(
+              autocompleteState: autocompleteState,
+            ),
+            const SizedBox(
+              height: 10,
+            ),
+            AnimatedBuilder(
+              animation: autocompleteState,
+              builder: (context, _) => autocompleteState.value
+                  ? const _HistoryView()
+                  : const SizedBox.shrink(),
+            ),
+          ],
         ),
-        _HistoryView(),
-      ],
+      ),
     );
   }
 }
 
 class _PackageSearchView extends HookWidget {
-  const _PackageSearchView();
+  const _PackageSearchView({
+    required this.autocompleteState,
+  });
+
+  final ValueNotifier<bool> autocompleteState;
 
   @override
   Widget build(BuildContext context) {
-    final autocompleteState = useValueNotifier(false);
-    final focus = useFocusNode();
+    double myValue = 50.0;
+    final width = MediaQuery.of(context).size.width * .75;
     final pubClient = context.read<PubClient>();
     final localStoragePersistence = context.read<LocalStoragePersistence>();
     final router = GoRouter.of(context);
     return AnimatedBuilder(
       animation: autocompleteState,
-      builder: (context, _) => autocompleteState.value
-          ? Column(
-              children: [
-                Autocomplete<PackageResult>(
-                  fieldViewBuilder: (
-                    context,
-                    textEditingController,
-                    _,
-                    onFieldSubmitted,
-                  ) =>
-                      TextField(
+      builder: (context, _) => AnimatedContainer(
+        width: myValue,
+        duration: const Duration(seconds: 1),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(100),
+          border: Border.all(
+            color: Colors.lightGreenAccent,
+            width: 2.0,
+          ),
+        ),
+        child: autocompleteState.value
+            ? Autocomplete<PackageResult>(
+                fieldViewBuilder: (
+                  context,
+                  textEditingController,
+                  focusNode,
+                  onFieldSubmitted,
+                ) =>
+                    Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: TextField(
+                    cursorColor: Colors.lightGreenAccent,
                     controller: textEditingController,
-                    focusNode: focus,
+                    focusNode: focusNode..requestFocus(),
+                    decoration: const InputDecoration(border: InputBorder.none),
+                    style: const TextStyle(
+                      color: Colors.lightGreenAccent,
+                    ),
                   ),
-                  optionsBuilder: (value) async {
-                    if (value.text.length > 1) {
-                      final result = await pubClient.search(
-                        value.text,
-                      );
-                      if (result.packages.length > 5) {
-                        return result.packages.sublist(0, 5);
-                      }
-
-                      return result.packages;
+                ),
+                optionsBuilder: (value) async {
+                  if (value.text.length > 1) {
+                    final result = await pubClient.search(
+                      value.text,
+                    );
+                    if (result.packages.length > 5) {
+                      return result.packages.sublist(0, 5);
                     }
 
-                    return [];
-                  },
-                  displayStringForOption: (packageResult) =>
-                      packageResult.package,
-                  onSelected: (packageResult) async {
-                    await localStoragePersistence
-                        .fetchPackageResults(packageResult);
+                    return result.packages;
+                  }
 
-                    router.go(
-                      '/details',
-                      extra: packageResult,
-                    );
-                  },
-                  optionsViewBuilder: (context, onSelected, options) {
-                    return Align(
-                      alignment: Alignment.topLeft,
-                      child: Material(
-                        child: ListView.builder(
-                          padding: const EdgeInsets.all(10.0),
-                          itemCount: options.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            final option = options.elementAt(index);
+                  return [];
+                },
+                displayStringForOption: (packageResult) =>
+                    packageResult.package,
+                onSelected: (packageResult) async {
+                  await localStoragePersistence
+                      .fetchPackageResults(packageResult);
 
-                            return GestureDetector(
-                              onTap: () {
-                                onSelected(option);
-                              },
-                              child: ListTile(
-                                title: Text(
-                                  option.package,
+                  router.go(
+                    '/details',
+                    extra: packageResult,
+                  );
+                },
+                optionsViewBuilder: (context, onSelected, options) {
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 10.0),
+                    child: Material(
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(10.0),
+                        itemCount: options.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          final option = options.elementAt(index);
+
+                          return GestureDetector(
+                            onTap: () {
+                              onSelected(option);
+                            },
+                            child: ListTile(
+                              title: Text(
+                                option.package,
+                                style: const TextStyle(
+                                  color: Colors.lightGreenAccent,
                                 ),
                               ),
-                            );
-                          },
-                        ),
+                            ),
+                          );
+                        },
                       ),
-                    );
-                  },
+                    ),
+                  );
+                },
+              )
+            : IconButton(
+                iconSize: 30,
+                onPressed: () {
+                  myValue = width;
+                  autocompleteState.value = true;
+                },
+                icon: const Icon(
+                  Icons.search,
+                  color: Colors.lightGreenAccent,
                 ),
-              ],
-            )
-          : IconButton(
-              onPressed: () {
-                focus.requestFocus();
-                autocompleteState.value = true;
-              },
-              icon: const Icon(
-                Icons.search,
               ),
-            ),
+      ),
     );
   }
 }
@@ -157,29 +198,50 @@ class _HistoryViewState extends State<_HistoryView> {
             final history = snapshot.data!;
 
             if (history.isEmpty) {
-              return const Text(
-                'No Recent Searches',
-              );
+              return const AppText(text: 'No Recent Searches');
             }
 
-            return Column(
-              children: [
-                const Text(
-                  'Recent Searches',
+            return Container(
+              width: MediaQuery.of(context).size.width * .75,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: Colors.lightGreenAccent,
+                  width: 2.0,
                 ),
-                ...history
-                    .map(
-                      (e) => Text(
-                        e.package,
+              ),
+              child: Column(
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: AppText(text: 'Recent Searches'),
+                  ),
+                  const AppDivider(),
+                  ListView.separated(
+                    shrinkWrap: true,
+                    itemBuilder: (context, index) => Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 32.0, vertical: 5),
+                      child: GestureDetector(
+                        onTap: () {
+                          GoRouter.of(context).go(
+                            '/details',
+                            extra: history[index],
+                          );
+                        },
+                        child: AppText(
+                          text: history[index].package,
+                        ),
                       ),
-                    )
-                    .toList(),
-              ],
+                    ),
+                    separatorBuilder: (_, __) => const AppDivider(),
+                    itemCount: history.length,
+                  )
+                ],
+              ),
             );
           }
-          return const Text(
-            'No Recent Searches',
-          );
+          return const SizedBox.shrink();
         });
   }
 }

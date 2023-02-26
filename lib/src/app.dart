@@ -71,6 +71,9 @@ class _AppView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
+      theme: ThemeData(
+        scaffoldBackgroundColor: Colors.black,
+      ),
       title: 'Autocomplete',
       routeInformationProvider: _router.routeInformationProvider,
       routeInformationParser: _router.routeInformationParser,
