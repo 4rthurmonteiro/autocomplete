@@ -1,5 +1,7 @@
+import 'package:autocomplete/src/packages/local_storage_persistence.dart';
 import 'package:autocomplete/src/packages/packages_detail_screen.dart';
 import 'package:autocomplete/src/packages/packages_screen.dart';
+import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -9,14 +11,28 @@ class AutoCompleteApp extends StatelessWidget {
   const AutoCompleteApp({
     super.key,
     required this.pubClient,
+    required this.localStoragePersistence,
+    required this.eventBus,
   });
 
   final PubClient pubClient;
+  final LocalStoragePersistence localStoragePersistence;
+  final EventBus eventBus;
 
   @override
   Widget build(BuildContext context) {
-    return Provider.value(
-      value: pubClient,
+    return MultiProvider(
+      providers: [
+        Provider.value(
+          value: localStoragePersistence,
+        ),
+        Provider.value(
+          value: pubClient,
+        ),
+        Provider.value(
+          value: eventBus,
+        )
+      ],
       child: const _AppView(),
     );
   }
@@ -29,7 +45,11 @@ class _AppView extends StatelessWidget {
     routes: [
       GoRoute(
         path: '/',
-        builder: (context, state) => const PackagesScreen(key: Key('packages')),
+        builder: (context, state) => const PackagesScreen(
+          key: Key(
+            'packages',
+          ),
+        ),
         routes: [
           GoRoute(
             path: 'details',
