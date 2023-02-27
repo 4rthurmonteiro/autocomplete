@@ -1,3 +1,9 @@
+import 'package:autocomplete/src/packages/package_detail.dart';
+import 'package:autocomplete/src/shared/utils/colors.dart';
+import 'package:autocomplete/src/shared/utils/decoration.dart';
+import 'package:autocomplete/src/shared/widgets/app_box.dart';
+import 'package:autocomplete/src/shared/widgets/app_divider.dart';
+import 'package:autocomplete/src/shared/widgets/app_text.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -14,74 +20,115 @@ class PackagesDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final pubClient = context.read<PubClient>();
     final eventBus = context.read<EventBus>();
     return SafeArea(
       child: Scaffold(
-        body: Column(
-          children: [
-            IconButton(
-              onPressed: () {
-                eventBus.fire(
-                  packageResult,
-                );
-                GoRouter.of(context).pop();
-              },
-              icon: const Icon(
-                Icons.arrow_back,
+        body: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AppBox(
+                boxDecoration: appBoxDecoration,
+                width: 70,
+                child: IconButton(
+                  onPressed: () {
+                    eventBus.fire(
+                      packageResult,
+                    );
+                    GoRouter.of(context).pushReplacement('/');
+                  },
+                  icon: const Icon(
+                    Icons.arrow_back,
+                    color: appPrimaryColor,
+                  ),
+                ),
               ),
-            ),
-            Text(packageResult.package),
-            FutureBuilder<PackageScore>(
-              future: pubClient.packageScore(
-                packageResult.package,
+              const SizedBox(
+                height: 10,
               ),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  final score = snapshot.data!;
-                  final likes = score.likeCount.toString();
-                  final grantedPoints = (score.grantedPoints ?? 0).toString();
-                  final popularityScore =
-                      '${((score.popularityScore ?? 0.0) * 100).toStringAsFixed(1)} %';
-                  return Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _ScoreView(
-                        scoreDescription: 'Likes',
-                        scoreValue: likes,
-                      ),
-                      _ScoreView(
-                        scoreDescription: 'Pub Points',
-                        scoreValue: grantedPoints,
-                      ),
-                      _ScoreView(
-                        scoreDescription: 'Popularity',
-                        scoreValue: popularityScore,
-                      ),
-                    ],
-                  );
-                }
+              FutureBuilder<PackageDetail>(
+                future: getPackageDetail(
+                    packageResult: packageResult, context: context),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    final detail = snapshot.data!;
+                    final score = detail.score;
+                    final likes = score.likeCount.toString();
+                    final grantedPoints = (score.grantedPoints ?? 0).toString();
+                    final popularityScore =
+                        '${((score.popularityScore ?? 0.0) * 100).toStringAsFixed(1)} %';
 
-                return const SizedBox.shrink();
-              },
-            ),
-            FutureBuilder<PubPackage>(
-              future: pubClient.packageInfo(
-                packageResult.package,
-              ),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  return Text(
-                    snapshot.data!.description,
-                  );
-                }
+                    return Container(
+                      decoration: appSecondaryBoxDecoration,
+                      child: Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: AppText(text: packageResult.package),
+                          ),
+                          const AppDivider(),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              _ScoreView(
+                                scoreDescription: 'Likes',
+                                scoreValue: likes,
+                              ),
+                              _ScoreView(
+                                scoreDescription: 'Pub Points',
+                                scoreValue: grantedPoints,
+                              ),
+                              _ScoreView(
+                                scoreDescription: 'Popularity',
+                                scoreValue: popularityScore,
+                              ),
+                            ],
+                          ),
+                          const AppDivider(),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: AppText.customColor(
+                              color: appSecondaryColor,
+                              text: detail.info.description,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
 
-                return const SizedBox.shrink();
-              },
-            ),
-          ],
+                  return const Center(
+                    child: CircularProgressIndicator.adaptive(
+                      backgroundColor: appPrimaryColor,
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  Future<PackageDetail> getPackageDetail({
+    required PackageResult packageResult,
+    required BuildContext context,
+  }) async {
+    final pubClient = context.read<PubClient>();
+
+    final score = await pubClient.packageScore(
+      packageResult.package,
+    );
+
+    final info = await pubClient.packageInfo(
+      packageResult.package,
+    );
+
+    return PackageDetail(
+      score: score,
+      info: info,
     );
   }
 }
@@ -100,11 +147,12 @@ class _ScoreView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          scoreValue,
+        AppText(
+          text: scoreValue,
         ),
-        Text(
-          scoreDescription.toUpperCase(),
+        AppText.customColor(
+          color: appSecondaryColor,
+          text: scoreDescription.toUpperCase(),
         ),
       ],
     );

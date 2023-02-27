@@ -30,7 +30,7 @@ class _Content extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final autocompleteState = useValueNotifier(false);
-
+    final showHistory = useValueNotifier(true);
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Align(
@@ -39,15 +39,22 @@ class _Content extends HookWidget {
           children: [
             _PackageSearchView(
               autocompleteState: autocompleteState,
+              showHistory: showHistory,
             ),
             const SizedBox(
               height: 10,
             ),
             AnimatedBuilder(
-              animation: autocompleteState,
-              builder: (context, _) => autocompleteState.value
-                  ? const _HistoryView()
-                  : const SizedBox.shrink(),
+              animation: Listenable.merge(
+                [
+                  autocompleteState,
+                  showHistory,
+                ],
+              ),
+              builder: (context, _) =>
+                  autocompleteState.value && showHistory.value
+                      ? const _HistoryView()
+                      : const SizedBox.shrink(),
             ),
           ],
         ),
@@ -56,16 +63,20 @@ class _Content extends HookWidget {
   }
 }
 
+// ignore: must_be_immutable
 class _PackageSearchView extends HookWidget {
-  const _PackageSearchView({
+  _PackageSearchView({
     required this.autocompleteState,
+    required this.showHistory,
   });
 
   final ValueNotifier<bool> autocompleteState;
+  final ValueNotifier<bool> showHistory;
+
+  double myValue = 50.0;
 
   @override
   Widget build(BuildContext context) {
-    double myValue = 50.0;
     final width = MediaQuery.of(context).size.width * .75;
     final pubClient = context.read<PubClient>();
     final localStoragePersistence = context.read<LocalStoragePersistence>();
@@ -91,6 +102,13 @@ class _PackageSearchView extends HookWidget {
                     cursorColor: appPrimaryColor,
                     controller: textEditingController,
                     focusNode: focusNode..requestFocus(),
+                    onChanged: (value) {
+                      if (value.length > 1) {
+                        showHistory.value = false;
+                      } else {
+                        showHistory.value = true;
+                      }
+                    },
                     decoration: const InputDecoration(border: InputBorder.none),
                     style: const TextStyle(
                       color: appPrimaryColor,
@@ -128,52 +146,33 @@ class _PackageSearchView extends HookWidget {
                     child: Align(
                       alignment: Alignment.topLeft,
                       child: Material(
-                          color: appBackgroundColor,
-                          child: Container(
-                            width: MediaQuery.of(context).size.width * .75,
-                            // padding: const EdgeInsets.only(top: 10.0),
-                            decoration: appSecondaryBoxDecoration,
-                            child: ListView.separated(
-                              shrinkWrap: true,
-                              itemBuilder: (context, index) {
-                                final option = options.elementAt(index);
+                        color: appBackgroundColor,
+                        child: Container(
+                          width: MediaQuery.of(context).size.width * .75,
+                          decoration: appSecondaryBoxDecoration,
+                          child: ListView.separated(
+                            shrinkWrap: true,
+                            itemBuilder: (context, index) {
+                              final option = options.elementAt(index);
 
-                                return Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 32.0, vertical: 5),
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      onSelected(option);
-                                    },
-                                    child: AppText(
-                                      text: option.package,
-                                    ),
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 32.0, vertical: 5),
+                                child: GestureDetector(
+                                  onTap: () {
+                                    onSelected(option);
+                                  },
+                                  child: AppText(
+                                    text: option.package,
                                   ),
-                                );
-                              },
-                              separatorBuilder: (_, __) => const AppDivider(),
-                              itemCount: options.length,
-                            ),
-                          )
-                          // child: ListView.builder(
-                          //   padding: const EdgeInsets.all(10.0),
-                          //   itemCount: options.length,
-                          //   itemBuilder: (BuildContext context, int index) {
-                          //     final option = options.elementAt(index);
-
-                          //     return GestureDetector(
-                          //       onTap: () {
-                          //         onSelected(option);
-                          //       },
-                          //       child: ListTile(
-                          //         title: AppText(
-                          //           text: option.package,
-                          //         ),
-                          //       ),
-                          //     );
-                          //   },
-                          // ),
+                                ),
+                              );
+                            },
+                            separatorBuilder: (_, __) => const AppDivider(),
+                            itemCount: options.length,
                           ),
+                        ),
+                      ),
                     ),
                   );
                 },

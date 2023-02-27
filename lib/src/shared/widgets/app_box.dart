@@ -5,15 +5,19 @@ class AppBox extends StatelessWidget {
   const AppBox({
     super.key,
     required this.child,
+    this.width,
+    this.boxDecoration,
   });
 
   final Widget child;
+  final double? width;
+  final BoxDecoration? boxDecoration;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: MediaQuery.of(context).size.width * .75,
-      decoration: appSecondaryBoxDecoration,
+      width: width ?? MediaQuery.of(context).size.width * .75,
+      decoration: boxDecoration ?? appSecondaryBoxDecoration,
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Align(
