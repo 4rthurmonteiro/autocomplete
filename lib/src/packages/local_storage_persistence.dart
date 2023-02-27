@@ -16,8 +16,6 @@ class LocalStoragePersistence {
     }
 
     return packagesString.map((e) => _decode(e)).toList();
-
-    // return _decode(packagesString);
   }
 
   Future<void> fetchPackageResults(
@@ -56,23 +54,6 @@ class LocalStoragePersistence {
   String _encode(PackageResult packageResult) => json.encode(
         packageResult.toMap(),
       );
-
-  // String _encode(List<PackageResult> packageResults) => json.encode(
-  //       packageResults
-  //           .map<Map<String, dynamic>>(
-  //             (packageResult) => packageResult.toMap(),
-  //           )
-  //           .toList(),
-  //     );
-
-  List<PackageResult> _decodeToList(String packageResults) =>
-      (json.decode(packageResults) as List<dynamic>)
-          .map<PackageResult>(
-            (item) => PackageResult.fromMap(
-              item,
-            ),
-          )
-          .toList();
 
   PackageResult _decode(String packageResultString) => PackageResult.fromMap(
         json.decode(
